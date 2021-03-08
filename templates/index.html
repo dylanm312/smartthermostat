@@ -1,0 +1,426 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}My Thermostat{% endblock %}
+
+{% block head %}
+{{super()}}
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico')}}" />
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Alert container -->
+    <div class="row">
+        <div class="col-xs-12" id="alertContainer"></div>
+    </div>
+
+    <!-- Title -->
+    <div class="row">
+        <div class="col-xs-12">
+            <h1 class="text-center">My Thermostat</h1>
+        </div>
+    </div>
+
+    <!-- Status and controls -->
+    <div class="row">
+        <div class="col-md-3 well" id="systemStatus">
+            <h4 class="text-center">System Status</h4>
+            <h2 class="text-center" id="tempDisplay">{{ data.current.temp }}&deg;F</h2>
+            <div class="text-center" id="overrideButtons">
+                {% if data.relay1state == 1 %}
+                <button onclick="setRelay(1, 'off')" class="btn btn-success relay1">Heat</button>
+                {% else %}
+                <button onclick="setRelay(1, 'on')" class="btn btn-danger relay1">Heat</button>
+                {% endif %}
+
+                {% if data.relay2state == 1 %}
+                <button onclick="setRelay(2, 'off')" class="btn btn-success relay2">Fan</button>
+                {% else %}
+                <button onclick="setRelay(2, 'on')" class="btn btn-danger relay2">Fan</button>
+                {% endif %}
+
+                {% if data.relay3state == 1 %}
+                <button onclick="setRelay(3, 'off')" class="btn btn-success relay3">A/C</button>
+                {% else %}
+                <button onclick="setRelay(3, 'on')" class="btn btn-danger relay3">A/C</button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-2"></div>
+        <div class="col-md-7 well">
+            <h4 class="text-center">Controls</h4>
+            <form class="form-inline text-center">
+                <div class="form-group">
+                    <label for="temp">Setpoint: </label>
+                    <input type="number" class="form-control" id="temp" value="{{ data.settings.setpoint }}" />
+                </div>
+                <div class="form-group">
+                    <label for="tol">Tolerance (+/-): </label>
+                    <input type="number" class="form-control" id="tol" value="{{ data.settings.tolerance }}" />
+                </div>
+                <button type="button" class="btn btn-default" id="saveControlsButton">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Graph -->
+    <div class="row">
+        <div class="col-xs-12" style="height:60vh;">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{super()}}
+<script type="text/javascript">
+    function setRelay(relayNum, newState) {
+        if(newState == "on") {
+            $.ajax({
+                url: "relay" + relayNum + "/on",
+                success: function(result) {
+                    var buttonId = "#systemStatus .relay"+relayNum;
+                    var button = $(buttonId);
+                    button.removeClass("btn-danger");
+                    button.addClass("btn-success");
+                    var func = "setRelay(" + relayNum + ", 'off')";
+                    button.attr('onclick', func);
+                }
+            })
+        }
+        else if(newState == "off") {
+            $.ajax({
+                url: "relay" + relayNum + "/off",
+                success: function(result) {
+                    var buttonId = "#systemStatus .relay"+relayNum;
+                    var button = $(buttonId);
+                    button.removeClass("btn-success");
+                    button.addClass("btn-danger");
+                    var func = "setRelay(" + relayNum + ", 'on')";
+                    button.attr('onclick', func);
+                }
+            })
+        }
+    }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2/dist/Chart.min.js"></script>
+<!-- Graph -->
+<script type="text/javascript">    
+    $(window).load(function(){
+
+        var ctx = document.getElementById('myChart').getContext('2d');
+        
+        // ------ FUNCTION DEFINITIONS ------- //
+        // Format data structure
+        function unpackData(data) {
+            // Unpack the JSON data
+            var timestamps = [];
+            var temps = [];
+            var heat = [];
+            var fan = [];
+            var ac = [];
+            for(row in data) {
+                timestamps.push(moment(data[row]['Timestamp'], "YYYY-MM-DD HH:mm:ss.SSSSSS", true));
+                //console.log(moment(data[row]['Timestamp'], "YYYY-MM-DD HH:mm:ss.SSSSSS", true));
+                temps.push(data[row]['Temperature (F)']);
+                heat.push(data[row]['Heat Relay']);
+                fan.push(data[row]['Fan Relay']);
+                ac.push(data[row]['A/C Relay']);
+            }
+
+            return {
+                "timestamps": timestamps,
+                "temps": temps,
+                "heat": heat,
+                "fan": fan,
+                "ac": ac,
+            };
+        }
+
+        // AJAX refresh chart
+        function refreshChart() {
+            $.ajax({
+                url: "getJSON/24",
+                success: function(result) {
+                    data = unpackData(JSON.parse(result));
+                    
+
+                    myChart.data.labels = data['timestamps'];
+                    //console.log(data['timestamps'][data['timestamps'].length - 1]);
+
+                    myChart.data.datasets[0].data = data['temps'];
+                    myChart.data.datasets[1].data = data['heat'];
+                    myChart.data.datasets[2].data = data['fan'];
+                    myChart.data.datasets[3].data = data['ac'];
+
+                    myChart.update();
+                },
+                error: function(error) {
+                    console.log("Chart refresh error: " + error.statusText);
+                }
+            })
+        }
+
+        // AJAX refresh temp and buttons
+        function refreshStatus() {
+            $.ajax({
+                url: "getCurrentState",
+                success: function(result) {
+                    var temp = result['temp'];
+                    var heat = result['heatRelay'];
+                    var fan = result['fanRelay'];
+                    var ac = result['acRelay'];
+
+                    $("#tempDisplay").html('<h2 class="text-center" id="tempDisplay">' + temp + '&deg;F</h2>');
+
+                    // Button 1
+                    var btn1 = $("#overrideButtons .relay1");
+                    if(result['heatRelay'] == 1) {
+                        btn1.removeClass("btn-danger");
+                        btn1.addClass("btn-success");
+                        btn1.attr("onclick", "setRelay(1, 'off')");
+                    } else {
+                        btn1.addClass("btn-danger");
+                        btn1.removeClass("btn-success");
+                        btn1.attr("onclick", "setRelay(1, 'on')");
+                    }
+
+                    // Button 2
+                    var btn2 = $("#overrideButtons .relay2");
+                    if(result['fanRelay'] == 1) {
+                        btn2.removeClass("btn-danger");
+                        btn2.addClass("btn-success");
+                        btn2.attr("onclick", "setRelay(2, 'off')");
+                    } else {
+                        btn2.addClass("btn-danger");
+                        btn2.removeClass("btn-success");
+                        btn2.attr("onclick", "setRelay(2, 'on')");
+                    }
+
+                    // Button 3
+                    var btn3 = $("#overrideButtons .relay3");
+                    if(result['acRelay'] == 1) {
+                        btn3.removeClass("btn-danger");
+                        btn3.addClass("btn-success");
+                        btn3.attr("onclick", "setRelay(3, 'off')");
+                    } else {
+                        btn3.addClass("btn-danger");
+                        btn3.removeClass("btn-success");
+                        btn3.attr("onclick", "setRelay(3, 'on')");
+                    }
+                }
+            });
+        }
+
+        // -------- CHART STUFF -------- //
+        var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: null,
+            datasets: [{
+                label: 'Temperature (F)',
+                data: null,
+                order: 0,
+                xAxisID: 'X',
+                yAxisID: 'A',
+                backgroundColor: 'rgba(255,0,0,0.2)',
+            },
+            {
+                label: 'Heat Relay',
+                data: null,
+                order: 1,
+                xAxisID: 'X',
+                yAxisID: 'B',
+                steppedLine: true,
+                //fill: false,
+                borderColor:        'rgba(0,255,0,0.4)',
+                backgroundColor:    'rgba(0,255,0,0.1)',
+            },
+            {
+                label: 'Fan Relay',
+                data: null,
+                order: 2,
+                xAxisID: 'X',
+                yAxisID: 'B',
+                steppedLine: true,
+                //fill: false,
+                borderColor:        'rgba(0,0,255,0.4)',
+                backgroundColor:    'rgba(0,0,255,0.1)',
+            },
+            {
+                label: 'A/C Relay',
+                data: null,
+                order: 3,
+                xAxisID: 'X',
+                yAxisID: 'B',
+                steppedLine: true,
+                //fill: false,
+                borderColor:        'rgba(255,0,255,0.4)',
+                backgroundColor:    'rgba(255,0,255,0.1)',
+            }]
+        },
+        options: {
+            scales: {
+                xAxes: [{
+                    id: 'X',
+                    type: 'time',
+                    time: {
+                        unit: 'hour'
+                    }
+                }],
+                yAxes: [{
+                    id: 'A',
+                    type: 'linear',
+                    position: 'left',
+                    ticks: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                {
+                    id: 'B',
+                    type: 'category',
+                    labels: ['OFF', 'ON'],
+                    position: 'right',
+                    ticks: {
+                        reverse: true
+                    }
+                }],
+            },
+            plugins: {
+                decimation: {
+                    enabled: true,
+                    algorithm: "lttb",
+                    samples: 5
+                }
+            },
+            layout: {
+                padding: {
+                    top: 15
+                }
+            },
+            maintainAspectRatio: false
+        }
+    });
+
+        // Load chart data
+        refreshChart();
+
+        // Refresh chart every 30 seconds
+        setInterval(function() {
+            refreshChart();
+        }, 30000)
+
+        // Refresh status every 2 seconds (far less intensive than chart)
+        setInterval(function() {
+            refreshStatus();
+        }, 2000)
+
+        // ------- CONTROLS -------- //
+        var tempSetSuccessfully = false;
+        var tolSetSuccessfully = false;
+
+        // Helper functions
+        function setTemp(temp) {
+            return $.ajax({
+                url: "setTemp/" + temp,
+                success: function() {
+                    tempSetSuccessfully = true;
+                    console.log("temp success");
+                },
+                error: function(error){
+                    console.log("Temp/tol set failed");
+
+                    var alert = ($("<div></div"))
+                        .addClass("alert alert-danger alert-dismissable");
+                    
+                    var closeButton = $("<button></button>");
+                    closeButton.attr("type", "button");
+                    closeButton.addClass("close");
+                    closeButton.attr("data-dismiss", "alert");
+                    closeButton.append("&times;");
+
+                    alert.append(closeButton);
+                    alert.append("<p>Temperature save error: " + error.responseText);
+
+                    $("#alertContainer").append(alert);
+                }
+            });
+        }
+
+        function setTol(tol) {
+            return $.ajax({
+                url: "setTol/" + tol,
+                success: function() {
+                    tolSetSuccessfully = true;
+                    console.log("tol success");
+                },
+                error: function(error){
+                    console.log("Temp/tol set failed");
+
+                    var alert = ($("<div></div"))
+                        .addClass("alert alert-danger alert-dismissable");
+                    
+                    var closeButton = $("<button></button>");
+                    closeButton.attr("type", "button");
+                    closeButton.addClass("close");
+                    closeButton.attr("data-dismiss", "alert");
+                    closeButton.append("&times;");
+
+                    alert.append(closeButton);
+                    alert.append("<p>Tolerance save error: " + error.responseText);
+
+                    $("#alertContainer").append(alert);
+                }
+            });   
+        }
+
+        $("#saveControlsButton").click(function() {
+            // Disable button to prevent multiple requests at once (causes JSONDecode error)
+            $("#saveControlsButton").prop("disabled", true);
+
+            var temp = $("form #temp").val();
+            var tol = $("form #tol").val();
+            
+            $.when(setTemp(temp).done(function(){
+                $.when(setTol(tol).done(function(){
+                    // Re-enable save button
+                    $("#saveControlsButton").prop("disabled", false);
+                    
+                    refreshStatus();
+                    refreshChart();
+
+                    if(tempSetSuccessfully && tolSetSuccessfully){
+                                    
+                        console.log("Set temp/tol successfully!");
+                        
+                        // Don't need to append more alerts if there's already one there.
+                        if($("#alertContainer div").length != 0) {
+                            $("#alertContainer div").remove();
+                        }
+                        var alert = ($("<div></div"))
+                            .addClass("alert alert-success alert-dismissable");
+                        
+                        var closeButton = $("<button></button>");
+                        closeButton.attr("type", "button");
+                        closeButton.addClass("close");
+                        closeButton.attr("data-dismiss", "alert");
+                        closeButton.append("&times;");
+
+                        alert.append(closeButton);
+                        alert.append("<p>Temperature and tolerance set successfully!");
+
+                        $("#alertContainer").append(alert);
+
+                        // Clear alert after a few seconds
+                        setTimeout(function() {
+                            $("#alertContainer div").remove();
+                        }, 5000)
+                    }
+                }));
+            }));
+        });
+    });
+</script>
+{% endblock %}

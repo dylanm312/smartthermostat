@@ -1,0 +1,95 @@
+from flask import Flask, render_template
+from flask_bootstrap import Bootstrap
+import relayInterface as relays
+import dataCollector
+import thermostat
+import json
+import threading
+
+# Initial setup
+app = Flask(__name__)
+Bootstrap(app)
+
+# Params
+hoursAgo = 24
+
+@app.route('/')
+def index():
+	template_data = {
+		'relay1state': relays.get_state(1),
+		'relay2state': relays.get_state(2),
+		'relay3state': relays.get_state(3),
+		'settings': dataCollector.getSettings(),
+		'current': dataCollector.getCurrentState(),
+	}
+	return render_template('index.html', data=template_data)
+
+@app.route('/relay<relayNum>/on')
+def relayOn(relayNum):
+	relays.set_state(int(relayNum), "on")
+	return "Relay %s turned ON" % relayNum
+
+@app.route('/relay<relayNum>/off')
+def relayOff(relayNum):
+	relays.set_state(int(relayNum), "off")
+	return "Relay %s turned OFF" % relayNum
+
+@app.route('/relay<relayNum>/getState')
+def relayState(relayNum):
+	return "Relay %s state: %s" % (relayNum, relays.get_state(int(relayNum)))
+
+@app.route('/getCurrentState')
+def getCurrentState():
+	return dataCollector.getCurrentState()
+
+@app.route('/setTemp/<temp>')
+def setTemp(temp):
+	temp = int(temp)
+
+	# Read in current settings
+	with open('static/settings.json', mode='r') as file:
+		settings = json.load(file)
+
+	# Change the setpoint
+	settings['thermostat']['setpoint'] = temp
+
+	# Write settings back
+	with open('static/settings.json', mode='w') as file:
+		file.write(json.dumps(settings, indent=4)) # indent setting makes it pretty
+
+	# Recalculate thermostat actions (in a background thread)
+	thermoThread = threading.Thread(target=thermostat.runThermostat, name="runThermo")
+	thermoThread.start()
+
+	# Success! :)
+	return "Temperature setpoint set to: %d" % temp
+
+@app.route('/setTol/<tol>')
+def setTol(tol):
+	tol = int(tol)
+
+	# Read in current settings
+	with open('static/settings.json', mode='r') as file:
+		settings = json.load(file)
+
+	# Change the setpoint
+	settings['thermostat']['tolerance'] = tol
+
+	# Write settings back
+	with open('static/settings.json', mode='w') as file:
+		file.write(json.dumps(settings, indent=4)) # indent setting makes it pretty
+
+	# Recalculate thermostat actions (in a background thread)
+	thermoThread = threading.Thread(target=thermostat.runThermostat, name="runThermo")
+	thermoThread.start()
+
+	# Success! :)
+	return "Temperature tolerance set to plus or minus %d degrees F." % tol
+
+@app.route('/getJSON/<hoursAgo>')
+def getJSON(hoursAgo):
+	return dataCollector.getJSON(hoursAgo)
+
+if __name__ == '__main__':
+	# Launch site
+	app.run(debug=True, host='0.0.0.0')

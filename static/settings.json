@@ -1,0 +1,6 @@
+{
+    "thermostat": {
+        "setpoint": 70,
+        "tolerance": 5
+    }
+}
