@@ -108,8 +108,6 @@
 <!-- Graph -->
 <script type="text/javascript">    
     $(window).load(function(){
-
-        var ctx = document.getElementById('myChart').getContext('2d');
         
         // ------ FUNCTION DEFINITIONS ------- //
         // Format data structure
@@ -141,7 +139,7 @@
         // AJAX refresh chart
         function refreshChart() {
             $.ajax({
-                url: "getJSON/24",
+                url: "getJSON/{{ data.hoursAgo }}",
                 success: function(result) {
                     data = unpackData(JSON.parse(result));
                     
@@ -214,6 +212,7 @@
         }
 
         // -------- CHART STUFF -------- //
+        var ctx = document.getElementById('myChart').getContext('2d');
         var myChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -303,19 +302,8 @@
             maintainAspectRatio: false
         }
     });
-
         // Load chart data
         refreshChart();
-
-        // Refresh chart every 30 seconds
-        setInterval(function() {
-            refreshChart();
-        }, 30000)
-
-        // Refresh status every 2 seconds (far less intensive than chart)
-        setInterval(function() {
-            refreshStatus();
-        }, 2000)
 
         // ------- CONTROLS -------- //
         var tempSetSuccessfully = false;
@@ -421,6 +409,16 @@
                 }));
             }));
         });
+
+        // Refresh chart every 30 seconds
+        setInterval(function() {
+            refreshChart();
+        }, 30000)
+
+        // Refresh status every 2 seconds (far less intensive than chart)
+        setInterval(function() {
+            refreshStatus();
+        }, 2000)
     });
 </script>
 {% endblock %}

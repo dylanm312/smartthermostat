@@ -11,16 +11,19 @@ app = Flask(__name__)
 Bootstrap(app)
 
 # Params
-hoursAgo = 24
+hoursAgo = 8
 
 @app.route('/')
 def index():
+	jsonData = dataCollector.getJSON(hoursAgo)
+
 	template_data = {
 		'relay1state': relays.get_state(1),
 		'relay2state': relays.get_state(2),
 		'relay3state': relays.get_state(3),
 		'settings': dataCollector.getSettings(),
 		'current': dataCollector.getCurrentState(),
+		'hoursAgo': hoursAgo,
 	}
 	return render_template('index.html', data=template_data)
 
