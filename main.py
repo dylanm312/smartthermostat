@@ -60,9 +60,8 @@ def setTemp(temp):
 	with open('static/settings.json', mode='w') as file:
 		file.write(json.dumps(settings, indent=4)) # indent setting makes it pretty
 
-	# Recalculate thermostat actions (in a background thread)
-	thermoThread = threading.Thread(target=thermostat.runThermostat, name="runThermo", args=temp)
-	thermoThread.start()
+	# Recalculate thermostat actions
+	thermostat.runThermostat(temp)
 
 	# Success! :)
 	return "Temperature setpoint set to: %d" % temp
