@@ -18,12 +18,14 @@ def getData(dataType="all"):
     with connectToSensor() as serialConnection:
         # Read one line from the serial buffer
         try:
-            data = serialConnection.readline().decode(encoding='utf-8', errors='strict').split(" ")
+            rawData = serialConnection.readline().decode(encoding='utf-8', errors='strict').split(" ")
 
-            data[0] = convertTo110(data[0])
-            data[1] = convertTo110(data[1])
-            data[2] = convertTo110(data[2])
-            data[3] = convertToF(data[3])
+            data = [None, None, None, None]
+            # data[0] is some ID thing, useless to us
+            data[0] = convertTo110(rawData[1])
+            data[1] = convertTo110(rawData[2])
+            data[2] = convertTo110(rawData[3])
+            data[3] = convertToF(rawData[4])
 
             if(dataType=="power"):
                 return float(data[0])
@@ -49,4 +51,4 @@ if __name__ == "__main__":
     print("Curr. 1 (W) | Curr. 2 (W) | Curr. 3 (W) | Temp. (F)")
     while True:
         data = getData()
-        print("%.2f W      | %.2f W     | %.2f W      | %.2f F" % (data[0], data[1], data[2], data[3]))
+        print("%.2f W     | %.2f W      | %.2f W      | %.2f F" % (data[0], data[1], data[2], data[3]))
