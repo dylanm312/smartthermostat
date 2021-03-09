@@ -61,7 +61,7 @@ def setTemp(temp):
 		file.write(json.dumps(settings, indent=4)) # indent setting makes it pretty
 
 	# Recalculate thermostat actions (in a background thread)
-	thermoThread = threading.Thread(target=thermostat.runThermostat, name="runThermo")
+	thermoThread = threading.Thread(target=thermostat.runThermostat, name="runThermo", args=temp)
 	thermoThread.start()
 
 	# Success! :)
@@ -81,10 +81,6 @@ def setTol(tol):
 	# Write settings back
 	with open('static/settings.json', mode='w') as file:
 		file.write(json.dumps(settings, indent=4)) # indent setting makes it pretty
-
-	# Recalculate thermostat actions (in a background thread)
-	thermoThread = threading.Thread(target=thermostat.runThermostat, name="runThermo")
-	thermoThread.start()
 
 	# Success! :)
 	return "Temperature tolerance set to plus or minus %d degrees F." % tol

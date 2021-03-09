@@ -4,6 +4,7 @@ import datetime
 import relayInterface
 import time
 import json
+import thermostat
 
 fileName = 'data.csv'
 
@@ -41,6 +42,9 @@ def collectData():
         data_writer.writerow([now, temp, heatRelay, fanRelay, acRelay])
         # data_writer.writerow([now, heatRelay, fanRelay, acRelay])
         # print ("%s\t%.2f\t\t%d\t%d\t%d" % (now.strftime("%c"), temp, heatRelay, fanRelay, acRelay))
+
+    # Run thermostat with new data
+    thermostat.runThermostat(temp)
 
     # Return it
     return {

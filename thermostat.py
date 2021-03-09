@@ -3,15 +3,12 @@ import json
 import relayInterface as relays
 from time import sleep
 
-def runThermostat(debug=True):
+def runThermostat(temp, debug=True):
     with open('static/settings.json') as file:
         # Load in current settings
         settings = json.load(file)
         setpoint = settings['thermostat']['setpoint']
         tol = settings['thermostat']['tolerance']
-
-        # Load in current temperature
-        temp = dataCollector.getCurrentState()['temp']
 
         if(debug):
             print("------- THERMO PARAMS ------")
@@ -48,7 +45,7 @@ def runThermostat(debug=True):
         print("\n")
 
 
-if __name__ == '__main__':
-    while True:
-        runThermostat()
-        sleep(60)
+# if __name__ == '__main__':
+  #  while True:
+  #      runThermostat()
+  #      sleep(60)
