@@ -14,26 +14,27 @@ def connectToSensor(port="/dev/ttyS0", baud=38400):
     serialConnection = serial.Serial(port, baud)
     return(serialConnection)
 
-def getData(serialConnection, dataType="all"):
-    # Read one line from the serial buffer
-    try:
-        data = serialConnection.readline().decode(encoding='utf-8', errors='strict').split(" ")
+def getData(dataType="all"):
+    with connectToSensor() as serialConnection:
+        # Read one line from the serial buffer
+        try:
+            data = serialConnection.readline().decode(encoding='utf-8', errors='strict').split(" ")
 
-        data[0] = convertTo110(data[0])
-        data[1] = convertTo110(data[1])
-        data[2] = convertTo110(data[2])
-        data[3] = convertToF(data[3])
-        
-        if(dataType=="power"):
-            return float(data[0])
-        elif(dataType=="temp"):
-            return float(data[3])
+            data[0] = convertTo110(data[0])
+            data[1] = convertTo110(data[1])
+            data[2] = convertTo110(data[2])
+            data[3] = convertToF(data[3])
 
-        return(data)
+            if(dataType=="power"):
+                return float(data[0])
+            elif(dataType=="temp"):
+                return float(data[3])
 
-    except KeyboardInterrupt:
-        print("\nCtrl-C detected, exiting...")
-        exit()
+            return(data)
+
+        except KeyboardInterrupt:
+            print("\nCtrl-C detected, exiting...")
+            exit()
 
 # Helper functions
 def convertTo110(watts220):
@@ -47,5 +48,5 @@ if __name__ == "__main__":
     i = 0
     print("Curr. 1 (W) | Curr. 2 (W) | Curr. 3 (W) | Temp. (F)")
     while True:
-        data = getData(connection)
-        print("%.2f W      | %.2f W      | %.2f W      | %.2f F" % (data[0], data[1], data[2], data[3]))
+        data = getData()
+        print("%.2f W      | %.2f W     | %.2f W      | %.2f F" % (data[0], data[1], data[2], data[3]))

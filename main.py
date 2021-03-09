@@ -22,7 +22,7 @@ def index():
 		'relay2state': relays.get_state(2),
 		'relay3state': relays.get_state(3),
 		'settings': dataCollector.getSettings(),
-		'current': dataCollector.getCurrentState(),
+		'current': dataCollector.getCurrentState(tempAsInt=True),
 		'hoursAgo': hoursAgo,
 	}
 	return render_template('index.html', data=template_data)
@@ -41,9 +41,9 @@ def relayOff(relayNum):
 def relayState(relayNum):
 	return "Relay %s state: %s" % (relayNum, relays.get_state(int(relayNum)))
 
-@app.route('/getCurrentState')
-def getCurrentState():
-	return dataCollector.getCurrentState()
+@app.route('/getCurrentState/<tempAsInt>')
+def getCurrentState(tempAsInt):
+	return dataCollector.getCurrentState(bool(tempAsInt))
 
 @app.route('/setTemp/<temp>')
 def setTemp(temp):

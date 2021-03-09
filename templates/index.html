@@ -163,7 +163,7 @@
         // AJAX refresh temp and buttons
         function refreshStatus() {
             $.ajax({
-                url: "getCurrentState",
+                url: "getCurrentState/True",
                 success: function(result) {
                     var temp = result['temp'];
                     var heat = result['heatRelay'];
@@ -207,6 +207,9 @@
                         btn3.removeClass("btn-success");
                         btn3.attr("onclick", "setRelay(3, 'on')");
                     }
+                },
+                error: function(error) {
+                    console.log(error.statusText);
                 }
             });
         }

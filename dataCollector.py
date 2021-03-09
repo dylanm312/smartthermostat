@@ -9,7 +9,7 @@ fileName = 'data.csv'
 
 # Set to False if temp sensor is disconnected to avoid spinning 
 # forever as we wait for the serial stream to come in
-tempSensorConnected = False
+tempSensorConnected = True
 
 # Set to true to initialize data file. THIS WILL ERASE ALL RECORDED DATA!! USE WITH CAUTION!!
 shouldInitFile = False
@@ -26,9 +26,8 @@ def collectData():
     now = datetime.datetime.now()
 
     if(tempSensorConnected):
-        with tempSensor.connectToSensor() as conn:
-            # Pull in data
-            temp = tempSensor.getData(conn, "temp")
+        # Pull in data
+        temp = tempSensor.getData("temp")
     else:
         temp = 70
 
@@ -51,13 +50,17 @@ def collectData():
         "acRelay": acRelay,
     }
 
-def getCurrentState():
-    if(tempSensorConnected):
-        with tempSensor.connectToSensor() as conn:
-            # Pull in data
-            temp = tempSensor.getData(conn, "temp")
+def getCurrentState(tempAsInt=False):
+    tmp = []
+    with open(fileName, mode='r') as file:
+        data_reader = csv.reader(file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for row in data_reader:
+            tmp.append(row)
+    
+    if(tempAsInt):
+        temp = int(round(float(tmp[-1][1])))
     else:
-        temp = 70
+        temp = float(tmp[-1][1])
 
     heatRelay = relayInterface.get_state(1)
     fanRelay = relayInterface.get_state(2)
