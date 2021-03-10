@@ -88,6 +88,11 @@ def setTol(tol):
 def getJSON(hoursAgo):
 	return dataCollector.getJSON(hoursAgo)
 
-if __name__ == '__main__':
-	# Launch site
+def run():
 	app.run(debug=True, host='0.0.0.0')
+
+if __name__ == '__main__':
+	dataThread = threading.Thread(target=dataCollector.run)
+	dataThread.start()
+	
+	run()

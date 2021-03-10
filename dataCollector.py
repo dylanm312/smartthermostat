@@ -121,8 +121,11 @@ def getJSON(hoursAgo=8):
             })
     return json.dumps(data)
 
-if __name__ == '__main__':
+def run():
     if(shouldInitFile): initFile()
     while True:
         print(collectData())
         time.sleep(60)
+
+if __name__ == '__main__':
+    run()
