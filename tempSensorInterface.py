@@ -10,33 +10,35 @@ Step 5: Run file
 
 import serial
 
+# Params
+debug = False
+
 def connectToSensor(port="/dev/ttyS0", baud=38400):
     serialConnection = serial.Serial(port, baud)
     return(serialConnection)
 
-def getData(dataType="all"):
+def getData():
     with connectToSensor() as serialConnection:
         # Read one line from the serial buffer
         try:
-            rawData = serialConnection.readline().decode(encoding='utf-8', errors='strict').split(" ")
-
-            data = [None, None, None, None]
-            # data[0] is some ID thing, useless to us
-            data[0] = convertTo110(rawData[1])
-            data[1] = convertTo110(rawData[2])
-            data[2] = convertTo110(rawData[3])
-            data[3] = convertToF(rawData[4])
-
-            if(dataType=="power"):
-                return float(data[0])
-            elif(dataType=="temp"):
-                return float(data[3])
-
+            rawData = serialConnection.readline().decode(encoding='utf-8', errors='strict')[:-2].split(",") # Need to drop /r/n after each line
+            
+            if(debug):
+                print("*** TEMPSENSOR LEN ***: " + str(len(rawData)))
+                for i in rawData:
+                    print("*** TEMPSENSOR ***: " + i)
+            
+            data = convertToF(rawData[4])
             return(data)
 
         except KeyboardInterrupt:
             print("\nCtrl-C detected, exiting...")
             exit()
+
+def getRawData():
+    with connectToSensor() as conn:
+        data = conn.readline().decode(encoding='utf-8', errors='strict')[:-2].split(",")
+        print(data)
 
 # Helper functions
 def convertTo110(watts220):

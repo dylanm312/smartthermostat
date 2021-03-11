@@ -58,6 +58,7 @@
                     <input type="number" class="form-control" id="tol" value="{{ data.settings.tolerance }}" />
                 </div>
                 <button type="button" class="btn btn-default" id="saveControlsButton">Save</button>
+                <button type="button" class="btn btn-info" id="collectDataButton">Get New Data Point</button>
             </form>
         </div>
     </div>
@@ -367,6 +368,20 @@
             });   
         }
 
+        // Manual get new data point button
+        $("#collectDataButton").click(function() {
+            // Disable button
+            $("#collectDataButton").prop("disabled", true);
+            $.ajax({
+                url: '/collectData',
+                success: function() {
+                    $("#collectDataButton").prop("disabled", false);
+                    refreshChart();
+                    refreshStatus();
+                }
+            });
+        });
+
         $("#saveControlsButton").click(function() {
             // Disable button to prevent multiple requests at once (causes JSONDecode error)
             $("#saveControlsButton").prop("disabled", true);
@@ -421,7 +436,7 @@
         // Refresh status every 2 seconds (far less intensive than chart)
         setInterval(function() {
             refreshStatus();
-        }, 2000)
+        }, 30000)
     });
 </script>
 {% endblock %}

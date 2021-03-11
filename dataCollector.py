@@ -1,7 +1,7 @@
 import tempSensorInterface as tempSensor
 import csv
 import datetime
-import relayInterface
+import relayInterface as relays
 import time
 import json
 import thermostat
@@ -14,6 +14,8 @@ tempSensorConnected = True
 
 # Set to true to initialize data file. THIS WILL ERASE ALL RECORDED DATA!! USE WITH CAUTION!!
 shouldInitFile = False
+
+debug = False
 
 def initFile():
     # Open CSV for data, or create if not exist. Set up CSV writer.
@@ -28,13 +30,13 @@ def collectData():
 
     if(tempSensorConnected):
         # Pull in data
-        temp = tempSensor.getData("temp")
+        temp = tempSensor.getData()
     else:
         temp = 70
 
-    heatRelay = relayInterface.get_state(1)
-    fanRelay = relayInterface.get_state(2)
-    acRelay = relayInterface.get_state(3)
+    heatRelay = relays.get_state(relays.RELAY_HEAT)
+    fanRelay = relays.get_state(relays.RELAY_FAN)
+    acRelay = relays.get_state(relays.RELAY_AC)
 
     # Write it
     with open(fileName, mode='a') as file:
@@ -44,7 +46,11 @@ def collectData():
         # print ("%s\t%.2f\t\t%d\t%d\t%d" % (now.strftime("%c"), temp, heatRelay, fanRelay, acRelay))
 
     # Run thermostat with new data
-    thermostat.runThermostat(temp)
+    thermostat.runThermostat()
+
+    if(debug):
+        print("Temp\t|Heat\t|Fan\t|AC")
+        print("%s\t|%s\t|%s\t|%s" % (temp, heatRelay, fanRelay, acRelay))
 
     # Return it
     return {
@@ -61,14 +67,18 @@ def getCurrentState(tempAsInt=False):
         for row in data_reader:
             tmp.append(row)
     
-    if(tempAsInt):
-        temp = int(round(float(tmp[-1][1])))
-    else:
+    # Sometimes sensor feeds a blank string instead of a temp. Get the second to last state instead in that case
+    try:
         temp = float(tmp[-1][1])
+    except ValueError:
+        temp = float(tmp[-2][1])
 
-    heatRelay = relayInterface.get_state(1)
-    fanRelay = relayInterface.get_state(2)
-    acRelay = relayInterface.get_state(3)
+    if(tempAsInt):
+        temp = int(round(float(temp)))
+
+    heatRelay = relays.get_state(relays.RELAY_HEAT)
+    fanRelay = relays.get_state(relays.RELAY_FAN)
+    acRelay = relays.get_state(relays.RELAY_AC)
 
     # Return it
     return {
@@ -124,7 +134,7 @@ def getJSON(hoursAgo=8):
 def run():
     if(shouldInitFile): initFile()
     while True:
-        print(collectData())
+        collectData()
         time.sleep(60)
 
 if __name__ == '__main__':

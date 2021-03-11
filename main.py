@@ -11,7 +11,7 @@ app = Flask(__name__)
 Bootstrap(app)
 
 # Params
-hoursAgo = 8
+hoursAgo = 2
 
 @app.route('/')
 def index():
@@ -45,9 +45,13 @@ def relayState(relayNum):
 def getCurrentState(tempAsInt):
 	return dataCollector.getCurrentState(bool(tempAsInt))
 
+@app.route('/collectData')
+def collectData():
+	return dataCollector.collectData()
+
 @app.route('/setTemp/<temp>')
 def setTemp(temp):
-	temp = int(temp)
+	temp = float(temp)
 
 	# Read in current settings
 	with open('static/settings.json', mode='r') as file:
@@ -61,14 +65,14 @@ def setTemp(temp):
 		file.write(json.dumps(settings, indent=4)) # indent setting makes it pretty
 
 	# Recalculate thermostat actions
-	thermostat.runThermostat(temp)
+	thermostat.runThermostat()
 
 	# Success! :)
 	return "Temperature setpoint set to: %d" % temp
 
 @app.route('/setTol/<tol>')
 def setTol(tol):
-	tol = int(tol)
+	tol = float(tol)
 
 	# Read in current settings
 	with open('static/settings.json', mode='r') as file:
@@ -80,6 +84,9 @@ def setTol(tol):
 	# Write settings back
 	with open('static/settings.json', mode='w') as file:
 		file.write(json.dumps(settings, indent=4)) # indent setting makes it pretty
+
+	# Recalculate thermostat actions
+	thermostat.runThermostat()
 
 	# Success! :)
 	return "Temperature tolerance set to plus or minus %d degrees F." % tol

@@ -3,7 +3,7 @@ import json
 import relayInterface as relays
 from time import sleep
 
-def runThermostat(debug=True):
+def runThermostat(debug=False):
     with open('static/settings.json') as file:
         # Load in current settings
         settings = json.load(file)
