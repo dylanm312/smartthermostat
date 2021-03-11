@@ -164,7 +164,7 @@
         // AJAX refresh temp and buttons
         function refreshStatus() {
             $.ajax({
-                url: "getCurrentState/True",
+                url: "getCurrentState/{{ data.precision }}",
                 success: function(result) {
                     var temp = result['temp'];
                     var heat = result['heatRelay'];

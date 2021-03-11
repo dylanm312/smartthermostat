@@ -12,6 +12,7 @@ Bootstrap(app)
 
 # Params
 hoursAgo = 2
+precision = 1
 
 @app.route('/')
 def index():
@@ -22,8 +23,9 @@ def index():
 		'relay2state': relays.get_state(2),
 		'relay3state': relays.get_state(3),
 		'settings': dataCollector.getSettings(),
-		'current': dataCollector.getCurrentState(tempAsInt=True),
+		'current': dataCollector.getCurrentState(precision),
 		'hoursAgo': hoursAgo,
+		'precision': precision,
 	}
 	return render_template('index.html', data=template_data)
 
@@ -41,9 +43,9 @@ def relayOff(relayNum):
 def relayState(relayNum):
 	return "Relay %s state: %s" % (relayNum, relays.get_state(int(relayNum)))
 
-@app.route('/getCurrentState/<tempAsInt>')
-def getCurrentState(tempAsInt):
-	return dataCollector.getCurrentState(bool(tempAsInt))
+@app.route('/getCurrentState/<precision>')
+def getCurrentState(precision):
+	return dataCollector.getCurrentState(int(precision))
 
 @app.route('/collectData')
 def collectData():
@@ -65,7 +67,7 @@ def setTemp(temp):
 		file.write(json.dumps(settings, indent=4)) # indent setting makes it pretty
 
 	# Recalculate thermostat actions
-	thermostat.runThermostat()
+	thermostat.runThermostat(temp=temp)
 
 	# Success! :)
 	return "Temperature setpoint set to: %d" % temp
@@ -86,7 +88,7 @@ def setTol(tol):
 		file.write(json.dumps(settings, indent=4)) # indent setting makes it pretty
 
 	# Recalculate thermostat actions
-	thermostat.runThermostat()
+	thermostat.runThermostat(tol=tol)
 
 	# Success! :)
 	return "Temperature tolerance set to plus or minus %d degrees F." % tol
