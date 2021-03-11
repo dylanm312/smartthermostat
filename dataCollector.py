@@ -25,18 +25,29 @@ def initFile():
         data_writer.writerow(["Timestamp", "Temperature (F)", "Heat Relay", "Fan Relay", "A/C Relay"])
 
 def collectData():
-    # Do the thing
+    # Get current timestamp
     now = datetime.datetime.now()
 
-    if(tempSensorConnected):
-        # Pull in data
-        temp = tempSensor.getData()
-    else:
-        temp = 70
-
+    # Collect relay states
     heatRelay = relays.get_state(relays.RELAY_HEAT)
     fanRelay = relays.get_state(relays.RELAY_FAN)
     acRelay = relays.get_state(relays.RELAY_AC)
+
+    # Collect temp sensor data (if it decides to work)
+    if(tempSensorConnected):
+        # Pull in data
+        try:
+            temp = tempSensor.getData()
+        except:
+            print("Temp sensor issue, skipping...")
+            return {
+                "temp": None,
+                "heatRelay": heatRelay,
+                "fanRelay": fanRelay,
+                "acRelay": acRelay,
+            }
+    else:
+        temp = 70
 
     # Write it
     with open(fileName, mode='a') as file:
@@ -46,7 +57,7 @@ def collectData():
         # print ("%s\t%.2f\t\t%d\t%d\t%d" % (now.strftime("%c"), temp, heatRelay, fanRelay, acRelay))
 
     # Run thermostat with new data
-    thermostat.runThermostat()
+    thermostat.runThermostat(temp=temp)
 
     if(debug):
         print("Temp\t|Heat\t|Fan\t|AC")
@@ -60,7 +71,7 @@ def collectData():
         "acRelay": acRelay,
     }
 
-def getCurrentState(tempAsInt=False):
+def getCurrentState(precision=1):
     tmp = []
     with open(fileName, mode='r') as file:
         data_reader = csv.reader(file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -73,8 +84,8 @@ def getCurrentState(tempAsInt=False):
     except ValueError:
         temp = float(tmp[-2][1])
 
-    if(tempAsInt):
-        temp = int(round(float(temp)))
+    # Round to appropriate decimal place
+    temp = float(round(temp, int(precision)))
 
     heatRelay = relays.get_state(relays.RELAY_HEAT)
     fanRelay = relays.get_state(relays.RELAY_FAN)
