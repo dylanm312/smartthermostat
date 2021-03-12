@@ -1,32 +1,41 @@
-import dataCollector
+"""
+Make decisions about thermostat functions.
+
+Looks at the current temperature, relay states,
+setpoint, and tolerance, and decides whether to
+turn on heat, turn on AC, leave system as-is,
+or turn everything off.
+"""
 import json
-import relayInterface as relays
+import data_collector
+import relay_interface as relays
 
-debug = False
-turnOffTolerance = 0.1 # Tolerance range for setpoint and temp to be considered 'equal'
+DEBUG = False
+TURN_OFF_TOLERANCE = 0.1 # Tolerance range for setpoint and temp to be considered 'equal'
 
-def runThermostat(temp=None, setpoint=None, tol=None):
+def run_thermostat(temp=None, setpoint=None, tol=None):
+    """Make thermostat decisions."""
     with open('static/settings.json') as file:
         # Load in current settings (if they are not provided)
         settings = json.load(file)
 
-        if(setpoint==None):
+        if setpoint is None:
             setpoint = settings['thermostat']['setpoint']
-        if(tol==None):
+        if tol is None:
             tol = settings['thermostat']['tolerance']
 
-        systemHasHeat = settings['hvac']['components']['heat']
-        systemHasAC = settings['hvac']['components']['ac']
+        system_has_heat = settings['hvac']['components']['heat']
+        system_has_ac = settings['hvac']['components']['ac']
 
     # Get current temp
-    if(temp==None):
-        temp = float(dataCollector.getCurrentState()['temp'])
+    if temp is None:
+        temp = float(data_collector.get_current_state()['temp'])
 
     # Get current system status
-    heatIsOn = relays.get_state(relays.RELAY_HEAT)
-    acIsOn = relays.get_state(relays.RELAY_AC)
+    heat_is_on = relays.get_state(relays.RELAY_HEAT)
+    ac_is_on = relays.get_state(relays.RELAY_AC)
 
-    if(debug):
+    if DEBUG:
         print("------- THERMO PARAMS ------")
         print("Current temp: %d" % temp)
         print("Setpoint: %d" % setpoint)
@@ -38,36 +47,44 @@ def runThermostat(temp=None, setpoint=None, tol=None):
 
     # See what we need to do
     # Is the system currently on? If so, wait till we get to the setpoint before turning off
-    if((heatIsOn or acIsOn) and \
-        temp >= (setpoint-turnOffTolerance) and \
-        temp <= (setpoint+turnOffTolerance)): # Give a slight tolerance range since we will likely never be right on the money
+    if((heat_is_on or ac_is_on) and \
+        temp >= (setpoint-TURN_OFF_TOLERANCE) and \
+        temp <= (setpoint+TURN_OFF_TOLERANCE)): # Give a slight tolerance range
+                                                # since we will likely never be right on the money
         off()
 
-    elif(temp > setpoint + tol and (acIsOn == 0) and systemHasAC): # Too hot, cool
+    elif(temp > setpoint + tol and (ac_is_on == 0) and system_has_ac): # Too hot, cool
         cool()
-    
-    elif(temp < setpoint - tol and (heatIsOn == 0) and systemHasHeat): # Too cold, heat
+
+    elif(temp < setpoint - tol and (heat_is_on == 0) and system_has_heat): # Too cold, heat
         heat()
 
     else:
-        if(debug): print("No changes needed")
+        if DEBUG:
+            print("No changes needed")
 
 def heat():
+    """Set system to heat."""
     relays.set_state(relays.RELAY_AC, "off")
     relays.set_state(relays.RELAY_HEAT, "on")
-    if(debug): print("Heat turned on")   
+    if DEBUG:
+        print("Heat turned on")
 
 def cool():
+    """Set system to cool."""
     relays.set_state(relays.RELAY_HEAT, "off")
     relays.set_state(relays.RELAY_AC, "on")
-    if(debug): print("AC turned on")
+    if DEBUG:
+        print("AC turned on")
 
 def off():
+    """Turn system off."""
     relays.set_state(relays.RELAY_HEAT, "off")
     relays.set_state(relays.RELAY_AC, "off")
-    if(debug): print("HVAC turned off")
+    if DEBUG:
+        print("HVAC turned off")
 
 # if __name__ == '__main__':
   #  while True:
-  #      runThermostat()
+  #      run_thermostat()
   #      sleep(60)

@@ -1,5 +1,6 @@
 /.vscode
 /__pycache__
 data.csv
+static/data.csv
 static/settings.json
 *.pyc
