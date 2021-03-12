@@ -11,11 +11,7 @@ This project uses Flask for the backend, Bootstrap for the frontend, and Chart.J
 ## Installation Instructions
 1. Assemble the hardware however you like. I used standoffs to stack the three components, but you could use a breadboard as well.
 2. Download and extract the source code to a folder of your choosing
-<<<<<<< HEAD
-3. Install `virtualenv` and `virtualenvwrapper` (skip to step 3 if you have these already).
-=======
 3. Install `virtualenv` and `virtualenvwrapper` (skip to step 4 if you have these already).
->>>>>>> Add hardware list/assembly instructions to readme
     
     ```bash
     pip3 install virtualenv virtualenvwrapper
