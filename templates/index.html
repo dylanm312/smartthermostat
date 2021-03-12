@@ -227,7 +227,8 @@
                 order: 0,
                 xAxisID: 'X',
                 yAxisID: 'A',
-                backgroundColor: 'rgba(255,0,0,0.2)',
+                borderColor:     'rgba(91,0,219,0.4)',
+                backgroundColor: 'rgba(91,0,219,0.2)',
             },
             {
                 label: 'Heat Relay',
@@ -237,8 +238,8 @@
                 yAxisID: 'B',
                 steppedLine: true,
                 //fill: false,
-                borderColor:        'rgba(0,255,0,0.4)',
-                backgroundColor:    'rgba(0,255,0,0.1)',
+                borderColor:        'rgba(255,0,0,0.4)',
+                backgroundColor:    'rgba(255,0,0,0.1)',
             },
             {
                 label: 'Fan Relay',
@@ -248,8 +249,8 @@
                 yAxisID: 'B',
                 steppedLine: true,
                 //fill: false,
-                borderColor:        'rgba(0,0,255,0.4)',
-                backgroundColor:    'rgba(0,0,255,0.1)',
+                borderColor:        'rgba(0,255,0,0.4)',
+                backgroundColor:    'rgba(0,255,0,0.1)',
             },
             {
                 label: 'A/C Relay',
@@ -259,8 +260,8 @@
                 yAxisID: 'B',
                 steppedLine: true,
                 //fill: false,
-                borderColor:        'rgba(255,0,255,0.4)',
-                backgroundColor:    'rgba(255,0,255,0.1)',
+                borderColor:        'rgba(0,0,255,0.4)',
+                backgroundColor:    'rgba(0,0,255,0.1)',
             }]
         },
         options: {
@@ -277,8 +278,8 @@
                     type: 'linear',
                     position: 'left',
                     ticks: {
-                        beginAtZero: true,
-                        max: 100
+                        min: 65,
+                        max: 72
                     }
                 },
                 {
