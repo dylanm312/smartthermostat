@@ -19,7 +19,7 @@ app = Flask(__name__)
 Bootstrap(app)
 
 # Params
-HOURS_AGO = 2
+HOURS_AGO = 3
 TEMP_DISPLAY_PRECISION = 1
 
 @app.route('/')
