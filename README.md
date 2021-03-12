@@ -1,3 +1,5 @@
+[![Pylint](https://github.com/dylanm312/smartthermostat/actions/workflows/pylint.yml/badge.svg)](https://github.com/dylanm312/smartthermostat/actions/workflows/pylint.yml)
+
 # Raspberry Pi Smart Thermostat
 This project uses Flask for the backend, Bootstrap for the frontend, and Chart.JS for the data visualizations.
 
