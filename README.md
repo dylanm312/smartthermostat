@@ -10,8 +10,14 @@ This project uses Flask for the backend, Bootstrap for the frontend, and Chart.J
 
 ## Installation Instructions
 1. Assemble the hardware however you like. I used standoffs to stack the three components, but you could use a breadboard as well.
-2. Download and extract the source code to a folder of your choosing
-3. Install `virtualenv` and `virtualenvwrapper` (skip to step 4 if you have these already).
+2. Connect the thermostat wires to the relays as follows:
+    1. Connect the `R` wire (either Rh or Rc) to the `C` terminal on relay 1
+    2. Connect all the `C` terminals on all three relays together
+    3. Connect the `W` wire to the `NO` terminal on relay 1 (this controls the heat)
+    4. Connect the `G` wire to the `NO` terminal on relay 2 (this controls the fan)
+    5. Connect the `Y` wire to the `NO` terminal on relay 3 (this controls the A/C)
+8. Download and extract the source code to a folder of your choosing
+9. Install `virtualenv` and `virtualenvwrapper` (skip to step 4 if you have these already).
     
     ```bash
     pip3 install virtualenv virtualenvwrapper
@@ -30,11 +36,11 @@ This project uses Flask for the backend, Bootstrap for the frontend, and Chart.J
     ```bash
     pip3 install -r requirements.txt
     ```
-    
-5. Launch the app
+5. Open `static/settings.json` and set your initial preferred temperature setpoint and tolerance, and indicate whether your home has heating and/or A/C by typing `true` or `false` where appropriate. Save the file.
+6. Launch the app
 
     ```bash
     python3 main.py
     ```
     
-6. Open the web interface to see your thermostat at work! By default, the web server runs on port 5000.
+7. Open the web interface to see your thermostat at work! By default, the web server runs on port 5000.
