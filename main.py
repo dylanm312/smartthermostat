@@ -7,7 +7,7 @@ Running this script directly does two things:
 """
 
 import json
-import threading
+import multitimer
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 import data_collector
@@ -113,7 +113,7 @@ def get_json(hours_ago):
     return data_collector.get_json(hours_ago)
 
 if __name__ == '__main__':
-    dataThread = threading.Thread(target=data_collector.run)
-    dataThread.start()
+    timer = multitimer.MultiTimer(interval=60, function=data_collector.collect_data, count=-1, runonstart=True)
+    timer.start()
 
     app.run(debug=True, host='0.0.0.0')

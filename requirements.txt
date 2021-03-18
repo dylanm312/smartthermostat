@@ -3,3 +3,4 @@ flask-bootstrap
 pyserial
 gpiozero
 rpi.gpio
+multitimer
