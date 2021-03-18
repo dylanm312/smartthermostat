@@ -142,7 +142,7 @@
             $.ajax({
                 url: "getJSON/{{ data.hoursAgo }}",
                 success: function(result) {
-                    data = unpackData(JSON.parse(result));
+                    data = unpackData(result);
                     
 
                     myChart.data.labels = data['timestamps'];

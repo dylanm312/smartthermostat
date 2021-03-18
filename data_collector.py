@@ -7,6 +7,7 @@ import csv
 import json
 import time
 import datetime
+from flask import jsonify
 import thermostat
 import temp_sensor_interface as temp_sensor
 import relay_interface as relays
@@ -155,7 +156,7 @@ def get_json(hours_ago=8):
                 headings[3]: row[3],
                 headings[4]: row[4],
             })
-    return json.dumps(data)
+    return jsonify(data)
 
 def run():
     """Collect a new data point every minute."""
