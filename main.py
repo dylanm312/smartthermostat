@@ -113,7 +113,10 @@ def get_json(hours_ago):
     return data_collector.get_json(hours_ago)
 
 if __name__ == '__main__':
-    timer = multitimer.MultiTimer(interval=60, function=data_collector.collect_data, count=-1, runonstart=True)
+    timer = multitimer.MultiTimer(interval=60, 
+                                    function=data_collector.collect_data, 
+                                    count=-1, 
+                                    runonstart=True)
     timer.start()
 
     app.run(debug=True, host='0.0.0.0')
