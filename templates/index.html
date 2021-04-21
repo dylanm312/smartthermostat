@@ -167,15 +167,15 @@
                 url: "getCurrentState/{{ data.precision }}",
                 success: function(result) {
                     var temp = result['temp'];
-                    var heat = result['heatRelay'];
-                    var fan = result['fanRelay'];
-                    var ac = result['acRelay'];
+                    var heat = result['heat_relay'];
+                    var fan = result['fan_relay'];
+                    var ac = result['ac_relay'];
 
                     $("#tempDisplay").html('<h2 class="text-center" id="tempDisplay">' + temp + '&deg;F</h2>');
 
                     // Button 1
                     var btn1 = $("#overrideButtons .relay1");
-                    if(result['heatRelay'] == 1) {
+                    if(heat == 1) {
                         btn1.removeClass("btn-danger");
                         btn1.addClass("btn-success");
                         btn1.attr("onclick", "setRelay(1, 'off')");
@@ -187,7 +187,7 @@
 
                     // Button 2
                     var btn2 = $("#overrideButtons .relay2");
-                    if(result['fanRelay'] == 1) {
+                    if(fan == 1) {
                         btn2.removeClass("btn-danger");
                         btn2.addClass("btn-success");
                         btn2.attr("onclick", "setRelay(2, 'off')");
@@ -199,7 +199,7 @@
 
                     // Button 3
                     var btn3 = $("#overrideButtons .relay3");
-                    if(result['acRelay'] == 1) {
+                    if(ac == 1) {
                         btn3.removeClass("btn-danger");
                         btn3.addClass("btn-success");
                         btn3.attr("onclick", "setRelay(3, 'off')");
